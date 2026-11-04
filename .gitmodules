@@ -1,0 +1,3 @@
+[submodule "holoocean"]
+	path = holoocean
+	url = git@github.com:byu-holoocean/HoloOcean.git
