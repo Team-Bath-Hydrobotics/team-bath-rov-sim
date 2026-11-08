@@ -20,7 +20,7 @@ def get_sensors(env, _command):
     sensors = list(state.keys())
     print(sensors)
 
-sensor_poll_rate = 10
+sensor_poll_rate = 1
 
 last_sensor_fetch = time.time()
 
@@ -30,6 +30,7 @@ try:
         state = env.step(action=command)
 
         if time.time() - last_sensor_fetch > (1/sensor_poll_rate):
+            last_sensor_fetch = time.time()
             for k in state:
                 print(k, state[k])
 
