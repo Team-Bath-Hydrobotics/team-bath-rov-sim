@@ -12,12 +12,14 @@ def get_command():
     keys = pygame.key.get_pressed()
     pygame.display.flip()
 
-    command = np.array(keys[pygame.K_LEFT], keys[pygame.K_LEFT],
+    command = np.array([keys[pygame.K_LEFT], keys[pygame.K_LEFT],
                     keys[pygame.K_RIGHT], keys[pygame.K_RIGHT],
                     keys[pygame.K_UP], keys[pygame.K_UP],
                     keys[pygame.K_DOWN], keys[pygame.K_DOWN],
-                    0, 0)
-    command * 10
+                    0, 0])
+    command *= 10
+
+    print(command)
 
     return command
 

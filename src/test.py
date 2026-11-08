@@ -9,7 +9,6 @@ The JSON format allows us to add sensors easily and see what their names are so 
 """
 
 import holoocean
-import numpy as np
 import manual_control
 import traceback
 
