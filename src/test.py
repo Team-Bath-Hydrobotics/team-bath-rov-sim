@@ -24,6 +24,7 @@ try:
         command = manual_control.get_command()
         state = env.step(action=command)
         dv1 = state["DepthSensor"]
+        print(type(state),state)
         print(f"{dv1}")
 except KeyboardInterrupt:
     print("Finished")
