@@ -10,6 +10,8 @@ The JSON format allows us to add sensors easily and see what their names are so 
 
 import holoocean
 import numpy as np
+import manual_control
+import traceback
 
 env = holoocean.make("PierHarbor-Hovering")
 
@@ -23,9 +25,14 @@ def get_sensors(env):
 command = np.array([10,10,10,10,0,0,0,0])
 #get_sensors(env)
 
-for i in range(2000):
-    state = env.step(action=command)
-    dv1 = state["DepthSensor"]
-    print(f"{i}: {dv1}")
-print("Finished!")
+try:
+    while True:
+        manual_control.get_command()
+        state = env.step(action=command)
+        dv1 = state["DepthSensor"]
+        print(f"{dv1}")
+except KeyboardInterrupt:
+    print("Finished")
+except Exception as e:
+    print(traceback.format_exception(e))
 
