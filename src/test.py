@@ -15,19 +15,14 @@ import traceback
 
 env = holoocean.make("PierHarbor-Hovering")
 
-def get_sensors(env):
-    state = env.step(action=command)
+def get_sensors(env, _command):
+    state = env.step(action=_command)
     sensors = list(state.keys())
     print(sensors)
 
-
-# The hovering AUV takes a command for each thruster
-command = np.array([10,10,10,10,0,0,0,0])
-#get_sensors(env)
-
 try:
     while True:
-        manual_control.get_command()
+        command = manual_control.get_command()
         state = env.step(action=command)
         dv1 = state["DepthSensor"]
         print(f"{dv1}")
