@@ -11,6 +11,7 @@ The JSON format allows us to add sensors easily and see what their names are so 
 import holoocean
 import manual_control
 import traceback
+import time
 
 env = holoocean.make("PierHarbor-Hovering")
 
@@ -19,13 +20,19 @@ def get_sensors(env, _command):
     sensors = list(state.keys())
     print(sensors)
 
+sensor_poll_rate = 10
+
+last_sensor_fetch = time.time()
+
 try:
     while True:
         command = manual_control.get_command()
         state = env.step(action=command)
-        dv1 = state["DepthSensor"]
-        print(type(state),state)
-        print(f"{dv1}")
+
+        if time.time() - last_sensor_fetch > (1/sensor_poll_rate):
+            for k in state:
+                print(k, state[k])
+
 except KeyboardInterrupt:
     print("Finished")
 except Exception as e:
