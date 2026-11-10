@@ -10,8 +10,11 @@ The JSON format allows us to add sensors easily and see what their names are so 
 
 import holoocean
 import manual_control
+import control_recorder
 import traceback
 import time
+
+USE_RECORDED_CONTROL = False
 
 env = holoocean.make("PierHarbor-Hovering")
 
@@ -26,7 +29,10 @@ last_sensor_fetch = time.time()
 
 try:
     while True:
-        command = manual_control.get_command()
+        if USE_RECORDED_CONTROL:
+            command = control_recorder.get_command()
+        else:
+            command = manual_control.get_command()
         state = env.step(action=command)
 
         if time.time() - last_sensor_fetch > (1/sensor_poll_rate):
