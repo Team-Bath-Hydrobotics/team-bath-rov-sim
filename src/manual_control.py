@@ -20,9 +20,8 @@ def get_command():
     #   4: angled front starboard       5: angled front port
     #   6: angled back port             7: angled back starboard
     #
-    # In the HoloOcean build used here, the four vertical thrusters are
-    # neutral at 0 and the four angled thrusters use a neutral trim of 10.
-    # Putting the 10 on the vertical thrusters makes the ROV rise.
+    # Zero is the command-free state. Any buoyancy/vehicle drift is therefore
+    # handled by the simulator rather than being hidden in the input mix.
     vertical = 10.0 * (keys[pygame.K_UP] - keys[pygame.K_DOWN])
 
     # Keyboard controls:
@@ -38,7 +37,7 @@ def get_command():
     # Approximate X-frame mixer for the four angled thrusters.  All four equal
     # values produce forward motion; opposite diagonal pairs produce strafe
     # and yaw.
-    horizontal = 10.0 + np.array([
+    horizontal = np.array([
         forward + strafe + yaw,   # front starboard
         forward - strafe - yaw,   # front port
         forward - strafe + yaw,   # back port
