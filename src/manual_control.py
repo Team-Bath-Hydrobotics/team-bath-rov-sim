@@ -25,12 +25,12 @@ def get_command():
     vertical = 10.0 * (keys[pygame.K_UP] - keys[pygame.K_DOWN])
 
     # Keyboard controls:
-    #   W/S       forward/backward
-    #   A/D       strafe left/right
+    #   W/S        forward/backward
+    #   A/D        strafe left/right
     #   Left/Right yaw left/right
-    #   Up/Down   ascend/descend
-    #   Q/E       roll left/right
-    #   R/F       pitch up/down
+    #   Up/Down    ascend/descend
+    #   Q/E        roll left/right
+    #   R/F        pitch up/down
     thrust = 10.0
     forward = thrust * (keys[pygame.K_w] - keys[pygame.K_s])
     strafe = thrust * (keys[pygame.K_a] - keys[pygame.K_d])
