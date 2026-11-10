@@ -23,7 +23,7 @@ manual_recorder = (
     else None
 )
 
-env = holoocean.make("PierHarbor-Hovering")
+env = holoocean.make("PierHarbor-HoveringCamera")
 
 def get_sensors(env, _command):
     state = env.step(action=_command)
