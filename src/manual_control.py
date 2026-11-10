@@ -29,10 +29,14 @@ def get_command():
     #   A/D       strafe left/right
     #   Left/Right yaw left/right
     #   Up/Down   ascend/descend
+    #   Q/E       roll left/right
+    #   R/F       pitch up/down
     thrust = 10.0
     forward = thrust * (keys[pygame.K_w] - keys[pygame.K_s])
     strafe = thrust * (keys[pygame.K_a] - keys[pygame.K_d])
     yaw = thrust * (keys[pygame.K_LEFT] - keys[pygame.K_RIGHT])
+    roll = thrust * (keys[pygame.K_q] - keys[pygame.K_e])
+    pitch = thrust * (keys[pygame.K_r] - keys[pygame.K_f])
 
     # Approximate X-frame mixer for the four angled thrusters.  All four equal
     # values produce forward motion; opposite diagonal pairs produce strafe
@@ -44,8 +48,15 @@ def get_command():
         forward + strafe - yaw,   # back starboard
     ], dtype=np.float32)
 
+    vertical_thrusters = np.array([
+        vertical + roll + pitch,  # front starboard
+        vertical - roll + pitch,  # front port
+        vertical - roll - pitch,  # back port
+        vertical + roll - pitch,  # back starboard
+    ], dtype=np.float32)
+
     command = np.concatenate([
-        np.full(4, vertical, dtype=np.float32),
+        vertical_thrusters,
         horizontal,
     ])
 
