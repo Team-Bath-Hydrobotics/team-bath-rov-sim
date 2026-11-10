@@ -20,17 +20,17 @@ def get_command():
     #   4: angled front starboard       5: angled front port
     #   6: angled back port             7: angled back starboard
     #
-    # The vertical value of 10 is the approximate neutral/hovering trim used
-    # by HoloOcean's PierHarbor-Hovering example.  The sign may need reversing
-    # if the vehicle moves in the opposite direction in a particular build.
-    thrust = 10.0
-    vertical = thrust * (keys[pygame.K_UP] - keys[pygame.K_DOWN])
+    # In the HoloOcean build used here, the four vertical thrusters are
+    # neutral at 0 and the four angled thrusters use a neutral trim of 10.
+    # Putting the 10 on the vertical thrusters makes the ROV rise.
+    vertical = 10.0 * (keys[pygame.K_UP] - keys[pygame.K_DOWN])
 
     # Keyboard controls:
     #   W/S       forward/backward
     #   A/D       strafe left/right
     #   Left/Right yaw left/right
     #   Up/Down   ascend/descend
+    thrust = 10.0
     forward = thrust * (keys[pygame.K_w] - keys[pygame.K_s])
     strafe = thrust * (keys[pygame.K_a] - keys[pygame.K_d])
     yaw = thrust * (keys[pygame.K_LEFT] - keys[pygame.K_RIGHT])
@@ -38,7 +38,7 @@ def get_command():
     # Approximate X-frame mixer for the four angled thrusters.  All four equal
     # values produce forward motion; opposite diagonal pairs produce strafe
     # and yaw.
-    horizontal = np.array([
+    horizontal = 10.0 + np.array([
         forward + strafe + yaw,   # front starboard
         forward - strafe - yaw,   # front port
         forward - strafe + yaw,   # back port
@@ -46,7 +46,7 @@ def get_command():
     ], dtype=np.float32)
 
     command = np.concatenate([
-        np.full(4, thrust + vertical, dtype=np.float32),
+        np.full(4, vertical, dtype=np.float32),
         horizontal,
     ])
 
