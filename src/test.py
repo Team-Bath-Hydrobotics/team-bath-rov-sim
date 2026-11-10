@@ -13,6 +13,7 @@ import manual_control
 import control_recorder
 import traceback
 import time
+import cv2
 
 USE_RECORDED_CONTROL = False
 RECORD_MANUAL_CONTROL = True
@@ -50,7 +51,13 @@ try:
         if time.time() - last_sensor_fetch > (1/sensor_poll_rate):
             last_sensor_fetch = time.time()
             for k in state:
-                print(k, state[k])
+                if k in ["PoseSensor", "VelocitySensor", "IMUSensor", "DepthSensor"]:
+                    print(k, state[k])
+                if k in ["LeftCamera", "RightCamera"]:
+                    frame = state[k]
+                    bgr_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    cv2.imshow("HoloOcean Camera Feed: {k}", bgr_frame)
+
 
 except KeyboardInterrupt:
     print("Finished")
