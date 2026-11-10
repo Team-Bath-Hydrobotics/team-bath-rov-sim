@@ -22,15 +22,37 @@ def save_recording(records: list[dict], filename: str | Path = DEFAULT_FILE) -> 
     print(f"Saved {len(records)} commands to {path}")
 
 
+class Recorder:
+    """Capture live manual-control commands as they are requested."""
+
+    def __init__(self, filename: str | Path = DEFAULT_FILE):
+        self.filename = filename
+        self.records: list[dict] = []
+        self.start_time = time.perf_counter()
+
+    def get_command(self) -> np.ndarray:
+        """Get a live command and record it with its elapsed timestamp."""
+        command = np.asarray(manual_control.get_command(), dtype=np.float32)
+        self.records.append(
+            {
+                "timestamp": time.perf_counter() - self.start_time,
+                "command": command.tolist(),
+            }
+        )
+        return command
+
+    def save(self) -> None:
+        save_recording(self.records, self.filename)
+
+
 def record(
     filename: str | Path = DEFAULT_FILE,
     rate_hz: int = CONTROL_RATE_HZ,
 ) -> None:
     """Record live commands until Ctrl+C, then save them to *filename*."""
-    records: list[dict] = []
-    start_time = time.perf_counter()
+    recorder = Recorder(filename)
     period = 1.0 / rate_hz
-    next_sample = start_time
+    next_sample = time.perf_counter()
 
     print("Recording controls. Press Ctrl+C to stop and save.")
 
@@ -40,16 +62,10 @@ def record(
             if now < next_sample:
                 time.sleep(next_sample - now)
 
-            command = np.asarray(manual_control.get_command(), dtype=np.float32)
-            records.append(
-                {
-                    "timestamp": time.perf_counter() - start_time,
-                    "command": command.tolist(),
-                }
-            )
+            recorder.get_command()
             next_sample += period
     except KeyboardInterrupt:
-        save_recording(records, filename)
+        recorder.save()
 
 
 class Replay:

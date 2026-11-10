@@ -15,6 +15,13 @@ import traceback
 import time
 
 USE_RECORDED_CONTROL = False
+RECORD_MANUAL_CONTROL = True
+
+manual_recorder = (
+    control_recorder.Recorder()
+    if RECORD_MANUAL_CONTROL and not USE_RECORDED_CONTROL
+    else None
+)
 
 env = holoocean.make("PierHarbor-Hovering")
 
@@ -31,6 +38,8 @@ try:
     while True:
         if USE_RECORDED_CONTROL:
             command = control_recorder.get_command()
+        elif manual_recorder is not None:
+            command = manual_recorder.get_command()
         else:
             command = manual_control.get_command()
         state = env.step(action=command)
@@ -44,4 +53,7 @@ except KeyboardInterrupt:
     print("Finished")
 except Exception as e:
     print(traceback.format_exception(e))
+finally:
+    if manual_recorder is not None:
+        manual_recorder.save()
 
