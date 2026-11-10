@@ -5,8 +5,12 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
-screen = pygame.display.set_mode((10, 10))
+screen = None
 
+def init():
+    global screen
+
+    screen = pygame.display.set_mode((10, 10))
 
 def get_command():
     pygame.event.pump()

@@ -35,6 +35,9 @@ sensor_poll_rate = 1
 last_sensor_fetch = time.time()
 
 try:
+    if not USE_RECORDED_CONTROL:
+        manual_control.init()
+
     while True:
         if USE_RECORDED_CONTROL:
             command = control_recorder.get_command()
