@@ -8,6 +8,8 @@ state is a dictionary with keys defined by the agent and the scenario. These key
 The JSON format allows us to add sensors easily and see what their names are so we can access them here
 """
 
+import argparse
+
 import holoocean
 import manual_control
 import control_recorder
@@ -15,8 +17,24 @@ import traceback
 import time
 import cv2
 
-USE_RECORDED_CONTROL = False
-RECORD_MANUAL_CONTROL = True
+parser = argparse.ArgumentParser(description="Run the HoloOcean ROV controller")
+parser.add_argument(
+    "--use-recorded-control",
+    "--allow-recorded-control",
+    dest="use_recorded_control",
+    action="store_true",
+    help="replay control_sequence.json instead of reading the keyboard",
+)
+parser.add_argument(
+    "--record-manual-control",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="record live manual commands (default: enabled)",
+)
+args = parser.parse_args()
+
+USE_RECORDED_CONTROL = args.use_recorded_control
+RECORD_MANUAL_CONTROL = args.record_manual_control
 
 manual_recorder = (
     control_recorder.Recorder()
