@@ -60,8 +60,6 @@ def get_command():
         horizontal,
     ])
 
-    print(command)
-
     return command
 
 if __name__ == "__main__":
