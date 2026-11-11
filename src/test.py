@@ -59,6 +59,10 @@ sensor_poll_rate = 1
 
 last_sensor_fetch = time.time()
 
+camera_feed_poll_rate = 30
+
+last_camera_poll = time.time()
+
 try:
     if not USE_RECORDED_CONTROL:
         manual_control.init()
@@ -77,11 +81,13 @@ try:
             for k in state:
                 if k in ["PoseSensor", "VelocitySensor", "IMUSensor", "DepthSensor"]:
                     print(k, state[k])
-                if k in ["LeftCamera", "RightCamera"]:
-                    print("New frame")
-                    frame = state[k]
-                    cv2.imshow(f"HoloOcean Camera Feed: {k}", frame)
-                    cv2.waitKey(1)
+
+        if time.time() - last_camera_poll > (1/camera_feed_poll_rate):
+            for k in ["LeftCamera", "RightCamera"]:
+                print("New frame")
+                frame = state[k]
+                cv2.imshow(f"HoloOcean Camera Feed: {k}", frame)
+                cv2.waitKey(1)
 
 except KeyboardInterrupt:
     print("Finished")
