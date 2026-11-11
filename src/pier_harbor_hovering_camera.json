@@ -1,0 +1,43 @@
+{
+  "name": "HoveringCameraCustom",
+  "world": "PierHarbor",
+  "package_name": "Ocean",
+  "main_agent": "auv0",
+  "ticks_per_sec": 30,
+  "frames_per_sec": true,
+  "octree_min": 0.02,
+  "octree_max": 5.0,
+  "window_width": 1280,
+  "window_height": 720,
+  "agents": [
+    {
+      "agent_name": "auv0",
+      "agent_type": "HoveringAUV",
+      "control_scheme": 0,
+      "location": [486.0, -632.0, -12.0],
+      "rotation": [0.0, 0.0, 135.0],
+      "sensors": [
+        {"sensor_type": "PoseSensor", "socket": "IMUSocket"},
+        {"sensor_type": "VelocitySensor", "socket": "IMUSocket"},
+        {"sensor_type": "IMUSensor", "socket": "IMUSocket", "Hz": 30},
+        {"sensor_type": "GPSSensor", "socket": "IMUSocket", "Hz": 5},
+        {"sensor_type": "DVLSensor", "socket": "DVLSocket", "Hz": 20},
+        {"sensor_type": "DepthSensor", "socket": "DepthSocket", "Hz": 30},
+        {
+          "sensor_type": "RGBCamera",
+          "sensor_name": "LeftCamera",
+          "socket": "CameraLeftSocket",
+          "Hz": 2,
+          "configuration": {"CaptureWidth": 256, "CaptureHeight": 256}
+        },
+        {
+          "sensor_type": "RGBCamera",
+          "sensor_name": "RightCamera",
+          "socket": "CameraRightSocket",
+          "Hz": 2,
+          "configuration": {"CaptureWidth": 256, "CaptureHeight": 256}
+        }
+      ]
+    }
+  ]
+}

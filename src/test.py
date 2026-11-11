@@ -9,6 +9,8 @@ The JSON format allows us to add sensors easily and see what their names are so 
 """
 
 import argparse
+import json
+from pathlib import Path
 
 import holoocean
 import manual_control
@@ -42,14 +44,10 @@ manual_recorder = (
     else None
 )
 
-scenario = holoocean.packagemanager.get_scenario("PierHarbor-HoveringCamera")
-for sensor in scenario["agents"][0]["sensors"]:
-    if sensor.get("sensor_type") == "RGBCamera":
-        sensor["Hz"] = 30
-        sensor.setdefault("configuration", {})["CaptureWidth"] = 256
-        sensor.setdefault("configuration", {})["CaptureHeight"] = 256
+scenario_path = Path(__file__).with_name("pier_harbor_hovering_camera.json")
+with scenario_path.open() as scenario_file:
+    scenario = json.load(scenario_file)
 
-scenario["package_name"] = "PierHarbor-HoveringCamera"
 env = holoocean.make(scenario_cfg=scenario)
 
 def get_sensors(env, _command):
