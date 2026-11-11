@@ -72,10 +72,9 @@ try:
                 if k in ["PoseSensor", "VelocitySensor", "IMUSensor", "DepthSensor"]:
                     print(k, state[k])
                 if k in ["LeftCamera", "RightCamera"]:
+                    print("New frame")
                     frame = state[k]
-                    bgr_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                    cv2.imshow("HoloOcean Camera Feed: {k}", bgr_frame)
-
+                    cv2.imshow(f"HoloOcean Camera Feed: {k}", frame)
 
 except KeyboardInterrupt:
     print("Finished")
