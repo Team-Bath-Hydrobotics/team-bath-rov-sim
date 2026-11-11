@@ -49,6 +49,7 @@ for sensor in scenario["agents"][0]["sensors"]:
         sensor.setdefault("configuration", {})["CaptureWidth"] = 256
         sensor.setdefault("configuration", {})["CaptureHeight"] = 256
 
+scenario["package_name"] = "PierHarbor-HoveringCamera"
 env = holoocean.make(scenario_cfg=scenario)
 
 def get_sensors(env, _command):
