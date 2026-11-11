@@ -42,7 +42,14 @@ manual_recorder = (
     else None
 )
 
-env = holoocean.make("PierHarbor-HoveringCamera")
+scenario = holoocean.packagemanager.get_scenario("PierHarbor-HoveringCamera")
+for sensor in scenario["agents"][0]["sensors"]:
+    if sensor.get("sensor_type") == "RGBCamera":
+        sensor["Hz"] = 30
+        sensor.setdefault("configuration", {})["CaptureWidth"] = 256
+        sensor.setdefault("configuration", {})["CaptureHeight"] = 256
+
+env = holoocean.make(scenario_cfg=scenario)
 
 def get_sensors(env, _command):
     state = env.step(action=_command)
@@ -75,6 +82,7 @@ try:
                     print("New frame")
                     frame = state[k]
                     cv2.imshow(f"HoloOcean Camera Feed: {k}", frame)
+                    cv2.waitKey(1)
 
 except KeyboardInterrupt:
     print("Finished")
