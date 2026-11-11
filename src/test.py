@@ -84,7 +84,6 @@ try:
 
         if time.time() - last_camera_poll > (1/camera_feed_poll_rate):
             for k in ["LeftCamera", "RightCamera"]:
-                print("New frame")
                 frame = state[k]
                 cv2.imshow(f"HoloOcean Camera Feed: {k}", frame)
                 cv2.waitKey(1)
