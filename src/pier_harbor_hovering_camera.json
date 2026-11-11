@@ -27,14 +27,14 @@
           "sensor_type": "RGBCamera",
           "sensor_name": "LeftCamera",
           "socket": "CameraLeftSocket",
-          "Hz": 2,
+          "Hz": 30,
           "configuration": {"CaptureWidth": 256, "CaptureHeight": 256}
         },
         {
           "sensor_type": "RGBCamera",
           "sensor_name": "RightCamera",
           "socket": "CameraRightSocket",
-          "Hz": 2,
+          "Hz": 30,
           "configuration": {"CaptureWidth": 256, "CaptureHeight": 256}
         }
       ]
