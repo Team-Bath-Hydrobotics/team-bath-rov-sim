@@ -33,6 +33,12 @@ parser.add_argument(
     default=True,
     help="record live manual commands (default: enabled)",
 )
+parser.add_argument(
+    "--send-telemetry-data",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="Sends the ROV telemetry data to packet-simulator. packet-simulator needs to be ran separately (default: disabled)",
+)
 args = parser.parse_args()
 
 USE_RECORDED_CONTROL = args.use_recorded_control
@@ -105,6 +111,9 @@ Main Rov Loop:
     4. .step() the simulation
 
 """
+
+
+
 
 try:
     if not USE_RECORDED_CONTROL:
