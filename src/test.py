@@ -63,6 +63,49 @@ camera_feed_poll_rate = 30
 
 last_camera_poll = time.time()
 
+"""
+. Ok so we need to send the data across the network at host:{127.0.0. 1} port: {52525}. UDP send packets
+. Probably want to create some shared buffer that: Is written to in the main thread every frame, 
+    and then read asynchronously from a sepatate thread that sends the data over the network.
+. Can't access holoOcean repo from multiple threads (?) 
+. Need to look at the way that packet-simulator sends the information and add a possible conversion step  
+    so that the data is the same format 
+. Design in a way to accommodate further data being sent (video processor?)
+. Separate threads just for the video
+. Look in the control repo, and the packet-simulator repo
+. I want to use a dictionary for the sensor values and then a queue to list the packets that need sent 
+. Note: We would want to use queue.put_nowait()
+
+    //Main loop
+    packet["key"] = <sensor_data> 
+    packet["key"] = <sensor_data> 
+    packet["key"] = <sensor_data> 
+    ...
+    //Wrap in a function?
+    queue.put(packet)
+
+    OR 
+    //Better alternative - just use the env table if that is suitable - investigate
+    queue.put(env.sensors)
+
+    Obviously we need to consider the processing step in this example, converting the data to 
+    be in the same format as the website expects 
+
+
+Pseudocode
+Separate Thread:
+    1. Read the data from the buffer from buffer (thread safely)
+    2. Process the data (units conversion, .... OPTIONAL) 
+    3. Send across the network (127.0.0.1):(545454)
+
+Main Rov Loop:
+    1. ....
+    2. Upload data to shared buffer 
+    3. ....
+    4. .step() the simulation
+
+"""
+
 try:
     if not USE_RECORDED_CONTROL:
         manual_control.init()
