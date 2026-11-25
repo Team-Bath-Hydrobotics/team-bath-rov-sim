@@ -25,14 +25,14 @@ and telemetry network settings are in `config/simulator-communication.json`.
 
 `SimulationRunner` is the only component that accesses HoloOcean. It runs in
 its own fixed-rate thread, applies the latest eight-value control command, and
-publishes the latest `ROVData` telemetry and camera frames.
+publishes immutable raw sensor snapshots and camera frames.
 
 `RovBroker` from `communicationv2` provides the common surface interface. It
 constructs the simulator-specific handlers:
 
 - `SimInputHandler` passes surface control commands to `SimulationRunner`.
-- `SimSensorHandler` returns the runner's latest telemetry for the telemetry
-  processor.
+- `SimSensorHandler` converts the runner's latest sensor snapshot into `ROVData`
+  for the telemetry processor.
 - Video uses the base no-op handler until `SimVideoHandler` is implemented.
 
 The runner begins with a neutral eight-zero control vector. Once it receives a

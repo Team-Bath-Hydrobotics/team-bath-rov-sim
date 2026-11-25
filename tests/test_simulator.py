@@ -11,7 +11,7 @@ from team_bath_rov_sim.simulator import run_broker_supervisor
 
 
 class FakeRunner:
-    current_sensor_data = None
+    current_sensor_state = None
 
     def set_control_command(self, _command) -> None:
         pass

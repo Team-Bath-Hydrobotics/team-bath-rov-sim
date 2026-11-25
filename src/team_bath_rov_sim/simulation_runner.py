@@ -6,9 +6,7 @@ Handlers may submit controls and read snapshots, but must never call ``env.step`
 
 from __future__ import annotations
 
-import copy
 import json
-import math
 import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -18,8 +16,6 @@ from types import MappingProxyType
 from typing import Any
 
 import numpy as np
-from common.data_interface.rov_data import ROVData
-from common.data_interface.vector_data import Vector3
 
 
 ControlVector = tuple[float, float, float, float, float, float, float, float]
@@ -30,18 +26,14 @@ EnvironmentFactory = Callable[[Mapping[str, Any]], Any]
 class SimulationSnapshot:
     """The latest state produced by the simulation thread.
 
-    ``sensor_data`` is never handed out directly: :meth:`sensor_data_copy` returns
-    a defensive copy because ``ROVData`` itself is mutable. Camera arrays are
-    copied and marked read-only before they are published.
+    Sensor values and camera arrays are copied and marked read-only before they
+    are published. Handlers convert the raw sensor state to their own models.
     """
 
-    sensor_data: ROVData | None
+    sensor_state: Mapping[str, np.ndarray] | None
     frames: Mapping[str, np.ndarray]
     tick: int
     timestamp: float
-
-    def sensor_data_copy(self) -> ROVData | None:
-        return copy.deepcopy(self.sensor_data)
 
 
 class SimulationRunner:
@@ -72,7 +64,7 @@ class SimulationRunner:
         self._error: BaseException | None = None
         self._command: ControlVector = (0.0,) * 8
         self._snapshot = SimulationSnapshot(
-            sensor_data=None,
+            sensor_state=None,
             frames=MappingProxyType({}),
             tick=0,
             timestamp=time.monotonic(),
@@ -114,9 +106,9 @@ class SimulationRunner:
             return self._snapshot
 
     @property
-    def current_sensor_data(self) -> ROVData | None:
-        """Return a mutable copy of the latest shared telemetry model."""
-        return self.get_snapshot().sensor_data_copy()
+    def current_sensor_state(self) -> Mapping[str, np.ndarray] | None:
+        """Return the latest immutable raw HoloOcean sensor values."""
+        return self.get_snapshot().sensor_state
 
     @property
     def current_frames(self) -> Mapping[str, np.ndarray]:
@@ -142,7 +134,9 @@ class SimulationRunner:
                 state = environment.step(action=np.asarray(command, dtype=np.float32))
                 tick += 1
                 snapshot = SimulationSnapshot(
-                    sensor_data=_rov_data_from_state(state),
+                    sensor_state=_sensor_state_from_state(
+                        state, self._camera_sensor_names
+                    ),
                     frames=_frames_from_state(state, self._camera_sensor_names),
                     tick=tick,
                     timestamp=time.monotonic(),
@@ -187,58 +181,16 @@ def _frames_from_state(
     return MappingProxyType(frames)
 
 
-def _rov_data_from_state(state: Mapping[str, Any]) -> ROVData:
-    """Convert the HoloOcean sensors configured by the current scenario.
-
-    Values unavailable in the scenario intentionally retain ``ROVData`` defaults.
-    HoloOcean's IMU is acceleration, angular velocity, magnetometer; its velocity
-    sensor is linear velocity followed by angular velocity.
-    """
-    data = ROVData()
-
-    depth = _scalar(state.get("DepthSensor"))
-    if depth is not None:
-        data.depth = depth
-
-    velocity = _vector(state.get("VelocitySensor"))
-    if velocity.size >= 3:
-        data.velocity = _vector3(velocity[:3])
-    if velocity.size >= 6:
-        data.angular_velocity = _vector3(velocity[3:6])
-
-    imu = np.asarray(state.get("IMUSensor", ()), dtype=float)
-    if imu.size >= 3:
-        data.acceleration = _vector3(imu.reshape(-1, 3)[0])
-    if imu.size >= 6:
-        data.angular_velocity = _vector3(imu.reshape(-1, 3)[1])
-
-    pose = np.asarray(state.get("PoseSensor", ()), dtype=float)
-    if pose.shape == (4, 4):
-        data.attitude = _euler_from_rotation_matrix(pose[:3, :3])
-
-    return data
-
-
-def _scalar(value: Any) -> float | None:
-    if value is None:
-        return None
-    array = np.asarray(value, dtype=float).reshape(-1)
-    return float(array[0]) if array.size else None
-
-
-def _vector(value: Any) -> np.ndarray:
-    if value is None:
-        return np.empty(0, dtype=float)
-    return np.asarray(value, dtype=float).reshape(-1)
-
-
-def _vector3(values: Sequence[float]) -> Vector3:
-    return Vector3(x=float(values[0]), y=float(values[1]), z=float(values[2]))
-
-
-def _euler_from_rotation_matrix(rotation: np.ndarray) -> Vector3:
-    """Return roll, pitch and yaw (radians) from a 3x3 rotation matrix."""
-    pitch = math.asin(float(np.clip(-rotation[2, 0], -1.0, 1.0)))
-    roll = math.atan2(float(rotation[2, 1]), float(rotation[2, 2]))
-    yaw = math.atan2(float(rotation[1, 0]), float(rotation[0, 0]))
-    return Vector3(x=roll, y=pitch, z=yaw)
+def _sensor_state_from_state(
+    state: Mapping[str, Any], camera_sensor_names: Sequence[str]
+) -> Mapping[str, np.ndarray]:
+    """Copy every non-camera sensor value into an immutable snapshot."""
+    camera_names = set(camera_sensor_names)
+    sensors: dict[str, np.ndarray] = {}
+    for name, value in state.items():
+        if name in camera_names:
+            continue
+        sensor_value = np.array(value, copy=True)
+        sensor_value.setflags(write=False)
+        sensors[name] = sensor_value
+    return MappingProxyType(sensors)

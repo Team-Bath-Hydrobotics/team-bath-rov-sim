@@ -41,10 +41,9 @@ def test_publishes_sensor_and_read_only_camera_snapshots(tmp_path) -> None:
     snapshot = runner.get_snapshot()
     assert snapshot.tick > 0
     assert environment.commands[0].tolist() == list(range(8))
-    assert snapshot.sensor_data.depth == 7.5
-    assert snapshot.sensor_data.velocity.x == 1.0
-    assert snapshot.sensor_data.acceleration.z == 9.0
-    assert snapshot.sensor_data.angular_velocity.y == 11.0
+    assert snapshot.sensor_state["DepthSensor"][0] == 7.5
+    assert snapshot.sensor_state["VelocitySensor"][0] == 1.0
+    assert not snapshot.sensor_state["DepthSensor"].flags.writeable
     assert not snapshot.frames["LeftCamera"].flags.writeable
     with pytest.raises(ValueError):
         snapshot.frames["LeftCamera"][0, 0, 0] = 0
