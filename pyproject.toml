@@ -6,8 +6,9 @@ readme = "README.md"
 authors = [
     { name = "alexdent", email = "skalex05@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.14.4"
 dependencies = [
+    "communicationv2",
     "numpy>=2.5.4",
     "opencv-python>=5.0.0.93",
     "pygame-ce>=2.5.8",
@@ -19,3 +20,11 @@ team-bath-rov-sim = "team_bath_rov_sim:main"
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+communicationv2 = { git = "ssh://git@github.com/Team-Bath-Hydrobotics/team-bath-rov-controls.git", subdirectory = "Rov/Software/Communicationv2", branch = "feature/TBHY-78" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
