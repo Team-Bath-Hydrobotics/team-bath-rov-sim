@@ -2,6 +2,8 @@ import logging
 import threading
 from functools import partial
 
+import pytest
+
 from communicationv2.handler_base_classes.video_handler import VideoHandler
 from communicationv2.rov_broker import RovBroker
 
@@ -76,9 +78,10 @@ def test_run_simulator_starts_the_runner_and_wires_the_broker(monkeypatch, tmp_p
     broker_instances = []
 
     class FakeSimulationRunner:
-        def __init__(self, scenario, *, tick_rate_hz) -> None:
+        def __init__(self, scenario, *, tick_rate_hz, on_failure=None) -> None:
             self.scenario = scenario
             self.tick_rate_hz = tick_rate_hz
+            self.on_failure = on_failure
             self.started = False
             self.stopped = False
             self.failure_checked = False
@@ -129,5 +132,47 @@ def test_run_simulator_starts_the_runner_and_wires_the_broker(monkeypatch, tmp_p
     assert runner.started
     assert runner.failure_checked
     assert runner.stopped
+    assert runner.on_failure is not None
     assert broker.config_path == communication_path
     assert broker.video_handler_cls is VideoHandler
+
+
+def test_runner_failure_stops_the_broker_and_surfaces_its_cause(monkeypatch) -> None:
+    import team_bath_rov_sim.simulator as simulator
+
+    runner_instances = []
+    broker_instances = []
+
+    class FailingSimulationRunner:
+        def __init__(self, scenario, *, tick_rate_hz, on_failure=None) -> None:
+            self.on_failure = on_failure
+            self.error = OSError("HoloOcean connection lost")
+            self.stopped = False
+            runner_instances.append(self)
+
+        def start(self) -> None:
+            if self.on_failure is not None:
+                self.on_failure()
+
+        def stop(self) -> None:
+            self.stopped = True
+
+        def raise_if_failed(self) -> None:
+            raise RuntimeError("simulation runner stopped unexpectedly") from self.error
+
+    class EventStoppingBroker:
+        def __init__(self, *_args, **_kwargs) -> None:
+            broker_instances.append(self)
+
+        def run(self, stop_event) -> None:
+            stop_event.set()
+
+    monkeypatch.setattr(simulator, "SimulationRunner", FailingSimulationRunner)
+    monkeypatch.setattr(simulator, "RovBroker", EventStoppingBroker)
+
+    with pytest.raises(RuntimeError, match="simulation runner stopped unexpectedly") as error:
+        run_simulator()
+
+    assert isinstance(error.value.__cause__, OSError)
+    assert runner_instances[0].stopped
+    assert broker_instances == []

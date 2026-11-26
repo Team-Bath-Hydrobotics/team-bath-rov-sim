@@ -7,6 +7,7 @@ Handlers may submit controls and read snapshots, but must never call ``env.step`
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -20,6 +21,8 @@ import numpy as np
 
 ControlVector = tuple[float, float, float, float, float, float, float, float]
 EnvironmentFactory = Callable[[Mapping[str, Any]], Any]
+FailureCallback = Callable[[], None]
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -50,6 +53,7 @@ class SimulationRunner:
         tick_rate_hz: float = 30.0,
         environment_factory: EnvironmentFactory | None = None,
         camera_sensor_names: Sequence[str] = ("LeftCamera", "RightCamera"),
+        on_failure: FailureCallback | None = None,
     ) -> None:
         if tick_rate_hz <= 0:
             raise ValueError("tick_rate_hz must be greater than zero")
@@ -58,6 +62,7 @@ class SimulationRunner:
         self._tick_interval = 1.0 / tick_rate_hz
         self._environment_factory = environment_factory or self._make_holoocean_environment
         self._camera_sensor_names = tuple(camera_sensor_names)
+        self._on_failure = on_failure
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
@@ -150,9 +155,15 @@ class SimulationRunner:
                 if deadline < time.monotonic() - self._tick_interval:
                     deadline = time.monotonic()
         except BaseException as error:
+            logger.exception("Simulation runner stopped unexpectedly")
             with self._lock:
                 self._error = error
             self._stop_event.set()
+            if self._on_failure is not None:
+                try:
+                    self._on_failure()
+                except Exception:
+                    logger.exception("Simulation runner failure callback failed")
 
     def _load_scenario(self) -> Mapping[str, Any]:
         with self._scenario_path.open(encoding="utf-8") as scenario_file:

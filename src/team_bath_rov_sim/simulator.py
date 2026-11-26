@@ -33,8 +33,12 @@ def run_simulator(
 ) -> None:
     """Start HoloOcean and connect it to the surface-facing broker."""
     logger = logging.getLogger("team_bath_rov_sim")
-    runner = SimulationRunner(scenario_path, tick_rate_hz=tick_rate_hz)
     event = stop_event or threading.Event()
+    runner = SimulationRunner(
+        scenario_path,
+        tick_rate_hz=tick_rate_hz,
+        on_failure=event.set,
+    )
 
     runner.start()
     try:
