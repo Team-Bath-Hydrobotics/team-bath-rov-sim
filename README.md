@@ -9,6 +9,27 @@ HoloOcean simulation connected to the same surface-facing communication layer as
   GitHub-organisation invitation before cloning HoloOcean. See the
   [HoloOcean installation guide](https://byu-holoocean.github.io/holoocean-docs/v2.4.0/usage/installation.html).
 
+## Setup
+
+Clone the repository with its HoloOcean submodule:
+
+```bash
+git clone --recurse-submodules git@github.com:Team-Bath-Hydrobotics/team-bath-rov-sim.git
+cd team-bath-rov-sim
+```
+
+If you already cloned the repository without submodules, initialise it with:
+
+```bash
+git submodule update --init --recursive
+```
+
+Then install the locked Python dependencies:
+
+```bash
+uv sync
+```
+
 ## Run the simulator
 
 After installing the project dependencies, start it with:
