@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.14.4"
 dependencies = [
     "communicationv2",
+    "holoocean",
     "numpy>=2.5.4",
     "opencv-python>=5.0.0.93",
     "pygame-ce>=2.5.8",
@@ -23,6 +24,7 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 communicationv2 = { git = "ssh://git@github.com/Team-Bath-Hydrobotics/team-bath-rov-controls.git", subdirectory = "Rov/Software/Communicationv2", branch = "feature/TBHY-78" }
+holoocean = { path = "holoocean/client", editable = true }
 
 [dependency-groups]
 dev = [
