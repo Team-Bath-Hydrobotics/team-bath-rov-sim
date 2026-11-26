@@ -32,23 +32,27 @@ def _rov_data_from_sensor_state(sensor_state: Mapping[str, Any]) -> ROVData:
 
     depth = _scalar(sensor_state.get("DepthSensor"))
     if depth is not None:
-        data.depth = depth
+        data.depth = -depth
 
     velocity = _vector(sensor_state.get("VelocitySensor"))
-    if velocity.size >= 3:
-        data.velocity = _vector3(velocity[:3])
-    if velocity.size >= 6:
-        data.angular_velocity = _vector3(velocity[3:6])
+    if velocity.size == 3:
+        data.velocity = _vector3(velocity)
 
     imu = np.asarray(sensor_state.get("IMUSensor", ()), dtype=float)
-    if imu.size >= 3:
-        data.acceleration = _vector3(imu.reshape(-1, 3)[0])
-    if imu.size >= 6:
-        data.angular_velocity = _vector3(imu.reshape(-1, 3)[1])
+    if imu.ndim == 2 and imu.shape[1] == 3 and imu.shape[0] >= 2:
+        data.acceleration = _vector3(imu[0])
+        data.angular_velocity = _vector3(imu[1])
 
     pose = np.asarray(sensor_state.get("PoseSensor", ()), dtype=float)
     if pose.shape == (4, 4):
-        data.attitude = _euler_from_rotation_matrix(pose[:3, :3])
+        orientation = _euler_from_rotation_matrix(pose[:3, :3])
+        roll, pitch, yaw = orientation.x, orientation.y, orientation.z
+        data.attitude = Vector3(
+            x=math.degrees(pitch),
+            y=math.degrees(yaw),
+            z=math.degrees(roll),
+        )
+        data.cardinal_direction = math.degrees(yaw) % 360
 
     return data
 

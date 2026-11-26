@@ -7,7 +7,7 @@ from communicationv2.rov_broker import RovBroker
 
 from team_bath_rov_sim.handlers.sim_input_handler import SimInputHandler
 from team_bath_rov_sim.handlers.sim_sensor_handler import SimSensorHandler
-from team_bath_rov_sim.simulator import run_broker_supervisor
+from team_bath_rov_sim.simulator import run_broker_supervisor, run_simulator
 
 
 class FakeRunner:
@@ -65,3 +65,69 @@ def test_broker_startup_failure_is_retried_without_stopping_simulation() -> None
     )
 
     assert attempts == 2
+
+
+def test_run_simulator_starts_the_runner_and_wires_the_broker(monkeypatch, tmp_path) -> None:
+    import team_bath_rov_sim.simulator as simulator
+
+    scenario_path = tmp_path / "scenario.json"
+    communication_path = tmp_path / "communication.json"
+    runner_instances = []
+    broker_instances = []
+
+    class FakeSimulationRunner:
+        def __init__(self, scenario, *, tick_rate_hz) -> None:
+            self.scenario = scenario
+            self.tick_rate_hz = tick_rate_hz
+            self.started = False
+            self.stopped = False
+            self.failure_checked = False
+            runner_instances.append(self)
+
+        def start(self) -> None:
+            self.started = True
+
+        def stop(self) -> None:
+            self.stopped = True
+
+        def raise_if_failed(self) -> None:
+            self.failure_checked = True
+
+    class FakeRovBroker:
+        def __init__(
+            self,
+            logger,
+            sensor_handler_factory,
+            input_handler_factory,
+            video_handler_cls,
+            *,
+            config_path,
+        ) -> None:
+            self.logger = logger
+            self.sensor_handler_factory = sensor_handler_factory
+            self.input_handler_factory = input_handler_factory
+            self.video_handler_cls = video_handler_cls
+            self.config_path = config_path
+            broker_instances.append(self)
+
+        def run(self, stop_event) -> None:
+            stop_event.set()
+
+    monkeypatch.setattr(simulator, "SimulationRunner", FakeSimulationRunner)
+    monkeypatch.setattr(simulator, "RovBroker", FakeRovBroker)
+
+    run_simulator(
+        scenario_path=scenario_path,
+        communication_config_path=communication_path,
+        tick_rate_hz=20,
+    )
+
+    runner = runner_instances[0]
+    broker = broker_instances[0]
+    assert runner.scenario == scenario_path
+    assert runner.tick_rate_hz == 20
+    assert runner.started
+    assert runner.failure_checked
+    assert runner.stopped
+    assert broker.config_path == communication_path
+    assert broker.video_handler_cls is VideoHandler

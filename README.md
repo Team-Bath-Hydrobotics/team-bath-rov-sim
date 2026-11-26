@@ -17,6 +17,12 @@ After installing the project dependencies, start it with:
 uv run team-bath-rov-sim
 ```
 
+To run tests with coverage report:
+
+```bash
+uv run pytest --cov=team_bath_rov_sim --cov-report=html
+```
+
 The default HoloOcean scenario is
 `src/pier_harbor_hovering_camera.json`. Surface-controller 
 and telemetry network settings are in `config/simulator-communication.json`.

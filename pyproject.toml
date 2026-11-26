@@ -27,4 +27,5 @@ communicationv2 = { git = "ssh://git@github.com/Team-Bath-Hydrobotics/team-bath-
 [dependency-groups]
 dev = [
     "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
 ]
